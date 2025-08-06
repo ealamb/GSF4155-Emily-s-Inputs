@@ -1,0 +1,68 @@
+#1 Acquire data from CGB:
+
+To download data from CGB---go here:
+https://lims.cgb.indiana.edu/outbox/HundleyLab/
+
+Username is HHundley
+Password is 9MJ31gS7
+
+Find your run folder (usually a tar file) and download to own Desktop
+
+# Then make sure to put the tar file on the Hundley lab server as well as the HundleyLab slate project space
+
+scp **tar file** ealamb@quartz.uits.iu.edu:/N/project/HundleyLab/GSF4155
+
+tar -xvf archive*  # to unload tar file and see individual contents
+
+
+
+
+conda install -c conda-forge -c bioconda star
+
+#2 If you don't already have the most recent versions of the assembly and annotation, acquire them like this: 
+
+ASSEMBLY='ftp://ftp.wormbase.org/pub/wormbase/releases/WS275/species/c_elegans/PRJNA13758/c_elegans.PRJNA13758.WS275.genomic.fa.gz'
+ANNOTATION='https://downloads.wormbase.org/releases/WS275/species/c_elegans/PRJNA13758/c_elegans.PRJNA13758.WS275.canonical_geneset.gtf.gz'
+
+#3 And unpack those files like this:
+
+mkdir genome 
+cd genome
+wget $ASSEMBLY 
+wget $ANNOTATION 
+gunzip c_elegans.PRJNA13758.WS275.genomic.fa.gz
+gunzip c_elegans.PRJNA13758.WS275.canonical_geneset.gtf.gz
+
+scp c_elegans.PRJNA13758.WS275.genomic.fa assembly.fasta
+scp c_elegans.PRJNA13758.WS275.canonical_geneset.gtf annotation.gtf
+
+#4 Align your reference genome and annotation:
+
+STAR \
+  --runThreadN 4 \
+  --runMode genomeGenerate \
+  --genomeDir genome/index \
+  --genomeFastaFiles genome/assembly.fasta \
+  --sjdbGTFfile genome/annotation.gtf \
+  --genomeSAindexNbases 12
+mkdir -p results/aligned
+
+#5 Now align your sequencing data to the annotated reference genome:
+
+FASTQ=$your sequencing fastq files*
+
+for FASTQ in ${FASTQ[@]}; do
+  PREFIX=results/aligned/$(basename $FASTQ .fastq)_
+  STAR \
+    --runThreadN 8 \
+    --outFilterMultimapNmax 1 \
+    --outFilterScoreMinOverLread .66 \
+    --outFilterMismatchNmax 13 \
+    --outFilterMismatchNoverLmax .3 \
+    --runMode alignReads \
+    --genomeDir genome/index \
+    --readFilesIn $FASTQ \
+    --outFileNamePrefix $PREFIX \
+    --outSAMattributes All \
+    --outSAMtype BAM SortedByCoordinate
+done
