@@ -4,19 +4,33 @@
 #Make directory for variant calling within slate folder for project (/N/slate/emierdma/GSF3231)
 mkdir Variantcall
 
-#copy genome file, snp file, and aligned bam into Variantcall directory
-scp assembly.fasta 
-scp c.elegans_WS275.snps.sorted.bed
-scp *.merged.bam
+samtools merge -@ 8 /N/slate/ealamb/GSF4155/variantcall/WTmerged.bam GSF4155-WT-input-rep1_S1_R1_001_Aligned.sortedByCoord.out.bam GSF4155-WT-input-rep2_S2_R1_001_Aligned.sortedByCoord.out.bam  GSF4155-WT-input-rep3_S3_R1_001_Aligned.sortedByCoord.out.bam
+samtools merge -@ 8 /N/slate/ealamb/GSF4155/variantcall/ADR2merged.bam GSF4155-adr-2-input-rep1_S7_R1_001_Aligned.sortedByCoord.out.bam GSF4155-adr-2-input-rep2_S8_R1_001_Aligned.sortedByCoord.out.bam GSF4155-adr-2-input-rep3_S9_R1_001_Aligned.sortedByCoord.out.bam
+samtools merge -@ 8 /N/slate/ealamb/GSF4155/variantcall/HAEmerged.bam GSF4155-HAE-input-rep1_S13_R1_001_Aligned.sortedByCoord.out.bam GSF4155-HAE-input-rep3_S14_R1_001_Aligned.sortedByCoord.out.ba
+
 
 #remove duplicate reads from bam file (takes ~5 minutes per file)
-samtools rmdup GSF4155-HAE-input.merged.bam HAEinputfile.nodup.bam
+samtools rmdup WTmerged.bam WT.nodup.bam
+samtools rmdup ADR2merged.bam ADR2.nodup.bam
+samtools rmdup HAEmerged.bam HAE.nodup.bam
+
 
 #Call the variant and clean up the output file
-bcftools mpileup -Ou -f assembly.fasta -a DP4 HAEinputfile.nodup.bam \
-  | bcftools call -mv -Ov \
+bcftools mpileup -Ou -f assembly.fasta -a DP4 HAE.nodup.bam \
+  | bcftools call -m -A -Ov \
   | awk '$5 != "<*>"' \
-  | tail -n +30 > HAE.rmdup.mpileup.vcf
+  | tail -n +30 > corrHAE.rmdup.mpileup.vcf
+
+
+bcftools mpileup -Ou -f assembly.fasta -a DP4 WT.nodup.bam \
+  | bcftools call -m -Ov \
+  | awk '$5 != "<*>"' \
+  | tail -n +30 > mWT.rmdup.mpileup.vcf
+
+bcftools mpileup -Ou -f assembly.fasta -a DP4 ADR2.nodup.bam \
+  | bcftools call -m -Ov \
+  | awk '$5 != "<*>"' \
+  | tail -n +30 > mADR2.rmdup.mpileup.vcf
 
 #copy variant.py file into Variantcall directory (in terminal, off carbonate)
 #convert vcf files to csv to open in excel
