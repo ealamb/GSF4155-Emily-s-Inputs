@@ -47,3 +47,32 @@ variants <- read.csv("/Users/emmalamb/Desktop/Bioinformatics/corrHAEvariant.csv"
 View(variants)
 
 #if the table is >1,000,000 rows, the csv will not open in excel and needs to be split into parts
+
+
+#In RStudio :
+
+
+# Load required package
+library(dplyr)
+
+# Read the reference file
+reference <- read.csv("SDreference.csv", stringsAsFactors = FALSE)
+
+# Function to filter variant files based on reference positions
+filter_variants <- function(variant_file, output_file) {
+  variants <- read.csv(variant_file, stringsAsFactors = FALSE)
+  
+  # Filter rows where chr and pos match Chromosome and Position in reference
+  filtered <- variants %>%
+    semi_join(reference, by = c("chr" = "Chromosome", "pos" = "Position"))
+  
+  # Write filtered data to new CSV
+  write.csv(filtered, output_file, row.names = FALSE)
+  
+  message(paste("Filtered data saved to", output_file))
+}
+
+# Run the function for each variant file
+filter_variants("corrHAEvariant.csv", "filtered_corrHAEvariant.csv")
+filter_variants("corrWTvariant.csv", "filtered_corrWTvariant.csv")
+filter_variants("corrADR2variant.csv", "filtered_corrADR2variant.csv")
