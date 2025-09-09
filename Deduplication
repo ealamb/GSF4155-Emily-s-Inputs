@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Write header to summary file
+echo -e "Filename\tTotal_reads\tDedup_reads\tPercent_duplicates" > bam_dedup_summary.tsv
+
+# Loop through all BAM files
+for i in *.bam; do
+    # Define output deduplicated BAM filename
+    out=${i%.bam}.dedup.bam
+
+    # Count total reads
+    total=$(samtools view -c "$i")
+
+    # Run markdup, save deduplicated BAM
+    samtools markdup -s -r "$i" "$out"
+
+    # Index the deduplicated BAM
+    samtools index "$out"
+
+    # Count reads in deduplicated BAM
+    dedup=$(samtools view -c "$out")
+
+    # Calculate % duplicates
+    dup_percent=$(echo "scale=2; 100*($total-$dedup)/$total" | bc)
+
+    # Append results to summary
+    echo -e "$i\t$total\t$dedup\t$dup_percent%"
+done >> bam_dedup_summary.tsv
