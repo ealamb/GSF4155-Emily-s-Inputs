@@ -35,9 +35,9 @@ bcftools mpileup -Ou -f assembly.fasta -a DP4 ADR2.nodup.bam \
 
 #copy variant.py file into Variantcall directory (in terminal, off carbonate)
 #convert vcf files to csv to open in excel
-python3 variant_updatedEL080825.py --v corrHAE.rmdup.mpileup.vcf --snp c.elegans.WS275.snps.sorted.bed --o corrHAEvariant.csv 
-python3 variant_updatedEL080825.py --v corrWT.rmdup.mpileup.vcf --snp c.elegans.WS275.snps.sorted.bed --o corrWTvariant.csv 
-python3 variant_updatedEL080825.py --v corrADR2.rmdup.mpileup.vcf --snp c.elegans.WS275.snps.sorted.bed --o corrADR2variant.csv 
+python3 variant_updatedEL080825.py --v corrHAE.rmdup.mpileup.vcf --o corrHAEvariant.csv 
+python3 variant_updatedEL080825.py --v corrWT.rmdup.mpileup.vcf --o corrWTvariant.csv 
+python3 variant_updatedEL080825.py --v corrADR2.rmdup.mpileup.vcf --o corrADR2variant.csv 
 
 
 #open csv in R studio to see how many rows it has
